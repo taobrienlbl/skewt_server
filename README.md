@@ -80,7 +80,7 @@ Attachments are written into `/data/work` and picked up on the next scan interva
 1. Start stack: `docker compose up --build`
 2. Copy one or more sample `*SHARPY.txt` files into `./data/work`
 3. Wait one interval or force immediate run:
-   - `docker compose exec skewt python -m app.processor`
+   - `docker compose exec skewt /opt/venv/bin/python -m app.processor`
 4. Verify:
    - images appear under `./data/output` and `./data/web/images`
    - source files appear under `./data/web/sharpy`
@@ -92,3 +92,57 @@ Attachments are written into `/data/work` and picked up on the next scan interva
 
 - Cron and web server run in the same container.
 - The startup script runs one initial processing pass immediately before cron begins.
+
+## Public hosting on a desktop/server with Docker
+
+Use this when you have a machine at home/office with Docker Desktop or Docker Engine and want internet access to the site.
+
+1. Prepare host:
+   - Install Docker + Docker Compose.
+   - Open firewall for TCP `8080` (and optionally `2525` if using SMTP ingest).
+2. Run service:
+   - `docker compose up -d --build`
+3. Persist data:
+   - Keep `data/work`, `data/output`, `data/web`, and `site-config.yml` on local disk (already mounted by `docker-compose.yml`).
+4. Expose publicly:
+   - Configure router/NAT port-forward from public `80/443` (or `8080`) to this host.
+   - Prefer a reverse proxy (`nginx`, `caddy`, or `traefik`) for TLS certificates and cleaner public URL.
+5. DNS:
+   - Point a domain/subdomain (for example `skewt.example.com`) to your public IP.
+6. Security hardening:
+   - Restrict SMTP ingest if enabled.
+   - Keep OS and Docker patched.
+   - Consider HTTP auth or IP allow-list if the site should be private.
+
+## Cloud deployment (AWS and Azure)
+
+You can run this as a single container service with persistent mounted storage.
+
+### AWS options
+
+1. `EC2 + Docker Compose` (simplest to match local behavior):
+   - Launch EC2 VM, install Docker/Compose, copy repo, run `docker compose up -d --build`.
+   - Use EBS volume for persistent `data/` directories.
+   - Put an Application Load Balancer or nginx/caddy in front for TLS on `443`.
+2. `ECS/Fargate` (managed containers):
+   - Build/push image to ECR.
+   - Run as ECS service.
+   - Mount EFS for `/data/work`, `/data/output`, `/data/web`.
+   - Use ALB for public HTTPS.
+
+### Azure options
+
+1. `Azure VM + Docker Compose` (closest to local):
+   - Provision Ubuntu VM, install Docker/Compose, deploy repo and run compose.
+   - Persist with managed disk.
+2. `Azure Container Apps` (managed):
+   - Push image to ACR.
+   - Deploy container app with mounted Azure Files for `/data/...`.
+   - Configure ingress on `443` and custom domain/TLS.
+
+### Cloud notes
+
+- Set environment variables in platform config rather than editing image.
+- Keep `site-config.yml` in mounted storage or convert to env/secret management.
+- SMTP receiving can be constrained in managed platforms; if inbound SMTP is blocked, use a mailbox polling approach (IMAP/API) instead.
+- Validate timezone (`TZ`) and clock sync, since timestamps are user-visible.
