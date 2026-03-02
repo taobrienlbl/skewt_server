@@ -13,7 +13,7 @@ fi
 cat >/etc/cron.d/skewt-cron <<CRON
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/venv/bin
-*/${INTERVAL} * * * * root cd /app && python -m app.processor >> /var/log/cron.log 2>&1
+*/${INTERVAL} * * * * root cd /app && /opt/venv/bin/python -m app.processor >> /var/log/cron.log 2>&1
 CRON
 chmod 0644 /etc/cron.d/skewt-cron
 crontab /etc/cron.d/skewt-cron
