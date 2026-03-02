@@ -6,6 +6,8 @@ from pathlib import Path
 
 from flask import Flask, abort, render_template, send_from_directory
 
+from app.site_config import load_site_config
+
 
 def create_app() -> Flask:
     app = Flask(__name__, template_folder="/app/templates", static_folder="/app/static")
@@ -17,16 +19,19 @@ def create_app() -> Flask:
     @app.get("/")
     def index():
         items = []
+        site = load_site_config()
         if manifest_path.exists():
             try:
                 payload = json.loads(manifest_path.read_text())
                 items = payload.get("items", [])
+                if isinstance(payload.get("site"), dict):
+                    site.update(payload["site"])
             except Exception:
                 items = []
 
         latest = items[0] if items else None
         rest = items[1:] if len(items) > 1 else []
-        return render_template("index.html", latest=latest, items=rest, total=len(items))
+        return render_template("index.html", latest=latest, items=rest, total=len(items), site=site)
 
     @app.get("/images/<path:filename>")
     def images(filename: str):

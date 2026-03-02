@@ -42,6 +42,7 @@ ENV PATH="/opt/venv/bin:${PATH}" \
     WEB_IMAGES_DIR=/data/web/images \
     WEB_SHARPY_DIR=/data/web/sharpy \
     MANIFEST_PATH=/data/web/manifest.json \
+    SITE_CONFIG_PATH=/data/site-config.yml \
     SCAN_INTERVAL_MINUTES=5 \
     ENABLE_SMTP_INGEST=false \
     SMTP_PORT=2525

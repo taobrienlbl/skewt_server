@@ -14,15 +14,22 @@
     <main class="container">
       <header class="hero">
         <p class="eyebrow">Skew-T Monitor</p>
-        <h1>Available Soundings</h1>
+        <h1>{{ site.site_long_name }} ({{ site.site_code }})</h1>
         <p class="subtitle">Total processed: {{ total }}</p>
       </header>
+
+      <section class="site-meta card">
+        <p><strong>Location:</strong> {{ site.site_location }}</p>
+        <p><strong>Latitude:</strong> {{ "%.4f"|format(site.site_latitude) }}</p>
+        <p><strong>Longitude:</strong> {{ "%.4f"|format(site.site_longitude) }}</p>
+      </section>
 
       {% if latest %}
       <section class="latest card">
         <div>
           <p class="label">Latest</p>
           <h2>{{ latest.id }}</h2>
+          <p class="launch">Launch: {{ latest.launch_label }}</p>
           <div class="actions">
             <a href="/{{ latest.image }}" target="_blank" rel="noreferrer">Open Image</a>
             <a href="/{{ latest.sharpy }}">Download SHARPY.txt</a>
@@ -36,6 +43,7 @@
         {% for item in items %}
         <article class="card item-card">
           <h3>{{ item.id }}</h3>
+          <p class="launch">Launch: {{ item.launch_label }}</p>
           <img src="/{{ item.image }}" alt="Skew-T {{ item.id }}" loading="lazy" />
           <div class="actions">
             <a href="/{{ item.image }}" target="_blank" rel="noreferrer">Open</a>
@@ -48,7 +56,7 @@
       {% if not latest %}
       <section class="empty card">
         <h2>No soundings yet</h2>
-        <p>Drop files matching <code>*SHARPY.txt</code> into the mounted work directory and wait for the next scheduler run.</p>
+        <p>Drop files matching <code>*SHARPY.txt</code> (or <code>*SHARPPY.txt</code>) into the mounted work directory and wait for the next scheduler run.</p>
       </section>
       {% endif %}
     </main>
