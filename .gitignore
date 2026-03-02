@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+data/work/**
+!data/work/.gitkeep
+data/output/**
+!data/output/.gitkeep
+data/web/images/**
+!data/web/images/.gitkeep
+data/web/sharpy/**
+!data/web/sharpy/.gitkeep
+data/web/manifest.json

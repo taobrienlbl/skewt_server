@@ -1,0 +1,133 @@
+:root {
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --ink: #10233a;
+  --muted: #4f6478;
+  --accent: #0c9a8c;
+  --accent-2: #1263d1;
+  --border: #d8e2ee;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Manrope", sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at 15% 10%, #d8ebff 0%, transparent 40%),
+    radial-gradient(circle at 80% 0%, #d5fff9 0%, transparent 35%),
+    var(--bg);
+}
+
+.bg-shape {
+  position: fixed;
+  inset: auto -20vw -30vh auto;
+  width: 50vw;
+  height: 50vw;
+  border-radius: 50%;
+  background: linear-gradient(160deg, rgba(18, 99, 209, 0.12), rgba(12, 154, 140, 0.14));
+  filter: blur(24px);
+  pointer-events: none;
+}
+
+.container {
+  width: min(1200px, 92vw);
+  margin: 2rem auto 4rem;
+}
+
+.hero h1 {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--accent-2);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.76rem;
+}
+
+.subtitle {
+  color: var(--muted);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(16, 35, 58, 0.06);
+}
+
+.latest {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  margin: 1.2rem 0 1.8rem;
+}
+
+.label {
+  margin: 0;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.latest h2,
+.item-card h3 {
+  margin: 0.3rem 0 0.8rem;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.actions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.actions a {
+  text-decoration: none;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.actions a:hover {
+  border-color: var(--accent-2);
+  color: var(--accent-2);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.item-card {
+  padding: 0.8rem;
+}
+
+.empty {
+  padding: 1rem;
+}
+
+@media (max-width: 900px) {
+  .latest {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "skewt-container"
+version = "0.1.0"
+description = "Containerized SHARPY-to-SkewT processor and web viewer"
+requires-python = ">=3.11"
+dependencies = [
+  "flask>=3.1.0",
+  "gunicorn>=23.0.0",
+  "sounderpy>=3.0.8",
+  "metpy>=1.6.0",
+  "numpy>=1.26.0",
+  "aiosmtpd>=1.4.6",
+]
+
+[tool.uv]
+package = true
