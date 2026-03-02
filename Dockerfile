@@ -27,8 +27,7 @@ RUN uv venv /opt/venv \
       gunicorn \
       sounderpy \
       metpy \
-      numpy \
-      aiosmtpd
+      numpy
 
 COPY app /app/app
 COPY templates /app/templates
@@ -43,11 +42,9 @@ ENV PATH="/opt/venv/bin:${PATH}" \
     WEB_SHARPY_DIR=/data/web/sharpy \
     MANIFEST_PATH=/data/web/manifest.json \
     SITE_CONFIG_PATH=/data/site-config.yml \
-    SCAN_INTERVAL_MINUTES=5 \
-    ENABLE_SMTP_INGEST=false \
-    SMTP_PORT=2525
+    SCAN_INTERVAL_MINUTES=5
 
-EXPOSE 8080 2525
+EXPOSE 8080
 VOLUME ["/data/work", "/data/output", "/data/web"]
 
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]

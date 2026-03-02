@@ -7,7 +7,6 @@ Dockerized service that:
 - uses `site-config.yml` metadata in plot titles and web UI
 - publishes images + downloadable source SHARPY files on a web UI
 - runs processing on a cron interval configurable by environment variable
-- optionally ingests SHARPY attachments from SMTP email
 
 ## Quick start
 
@@ -27,8 +26,6 @@ Then open `http://localhost:8080`.
 ## Environment variables
 
 - `SCAN_INTERVAL_MINUTES` (default `5`): cron interval for processing run. Integer `1-59`.
-- `ENABLE_SMTP_INGEST` (default `false`): enable SMTP receiver in container.
-- `SMTP_PORT` (default `2525`): SMTP receiver port when enabled.
 - `SITE_CONFIG_PATH` (default `/data/site-config.yml`): path to site metadata YAML.
 - `TZ` (default `UTC`): container timezone.
 
@@ -64,17 +61,6 @@ Launch date/time is parsed from filename pattern:
 Example:
 - `USIUB_20260222_21Z_SHARPPY.txt` -> `22 FEB 2026 | 2100Z`
 
-## Optional SMTP ingest
-
-Enable with:
-
-```bash
-ENABLE_SMTP_INGEST=true SMTP_PORT=2525 docker compose up --build
-```
-
-Send email attachments named like `XXXXSHARPY.txt` to localhost:2525.
-Attachments are written into `/data/work` and picked up on the next scan interval.
-
 ## Testing workflow
 
 1. Start stack: `docker compose up --build`
@@ -99,7 +85,7 @@ Use this when you have a machine at home/office with Docker Desktop or Docker En
 
 1. Prepare host:
    - Install Docker + Docker Compose.
-   - Open firewall for TCP `8080` (and optionally `2525` if using SMTP ingest).
+   - Open firewall for TCP `8080`.
 2. Run service:
    - `docker compose up -d --build`
 3. Persist data:
@@ -110,7 +96,6 @@ Use this when you have a machine at home/office with Docker Desktop or Docker En
 5. DNS:
    - Point a domain/subdomain (for example `skewt.example.com`) to your public IP.
 6. Security hardening:
-   - Restrict SMTP ingest if enabled.
    - Keep OS and Docker patched.
    - Consider HTTP auth or IP allow-list if the site should be private.
 
@@ -144,5 +129,4 @@ You can run this as a single container service with persistent mounted storage.
 
 - Set environment variables in platform config rather than editing image.
 - Keep `site-config.yml` in mounted storage or convert to env/secret management.
-- SMTP receiving can be constrained in managed platforms; if inbound SMTP is blocked, use a mailbox polling approach (IMAP/API) instead.
 - Validate timezone (`TZ`) and clock sync, since timestamps are user-visible.

@@ -23,8 +23,4 @@ cd /app && python -m app.processor || true
 
 cron
 
-if [ "${ENABLE_SMTP_INGEST,,}" = "true" ]; then
-  cd /app && python -m app.smtp_ingest &
-fi
-
 exec gunicorn --bind 0.0.0.0:8080 --workers 2 --threads 2 "app.web:create_app()"
