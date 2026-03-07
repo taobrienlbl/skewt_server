@@ -66,7 +66,7 @@ You do not need deep knowledge of these technologies to use this workflow.
 
 The helper script in this repository is:
 
-- [`scripts/install_wireguard_host.sh`](/home/obrienta/projects/skewt_server/scripts/install_wireguard_host.sh)
+- `scripts/install_wireguard_host.sh`
 
 On a real run, it does two kinds of work:
 
@@ -89,8 +89,8 @@ It also writes these repository files:
 
 Checked-in examples of the generated repository files are available here:
 
-- [`config/wireguard-ftp.env.example`](/home/obrienta/projects/skewt_server/config/wireguard-ftp.env.example)
-- [`docker-compose.ftp-wireguard.yml.example`](/home/obrienta/projects/skewt_server/docker-compose.ftp-wireguard.yml.example)
+- `config/wireguard-ftp.env.example`
+- `docker-compose.ftp-wireguard.yml.example`
 
 ## Recommended default network values
 

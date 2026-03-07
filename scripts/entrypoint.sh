@@ -10,16 +10,22 @@ if ! [[ "${INTERVAL}" =~ ^[0-9]+$ ]] || [ "${INTERVAL}" -lt 1 ] || [ "${INTERVAL
   INTERVAL=5
 fi
 
+PROCESS_NICE="${PROCESS_NICE:-10}"
+if ! [[ "${PROCESS_NICE}" =~ ^-?[0-9]+$ ]] || [ "${PROCESS_NICE}" -lt -20 ] || [ "${PROCESS_NICE}" -gt 19 ]; then
+  echo "Invalid PROCESS_NICE=${PROCESS_NICE}; must be an integer in [-20,19]. Falling back to 10."
+  PROCESS_NICE=10
+fi
+
 cat >/etc/cron.d/skewt-cron <<CRON
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/venv/bin
-*/${INTERVAL} * * * * root cd /app && /opt/venv/bin/python -m app.processor >> /var/log/cron.log 2>&1
+*/${INTERVAL} * * * * root cd /app && nice -n ${PROCESS_NICE} /opt/venv/bin/python -m app.processor >> /var/log/cron.log 2>&1
 CRON
 chmod 0644 /etc/cron.d/skewt-cron
 crontab /etc/cron.d/skewt-cron
 
 # Process once at startup so fresh files appear immediately.
-cd /app && python -m app.processor || true
+cd /app && nice -n "${PROCESS_NICE}" python -m app.processor || true
 
 cron
 

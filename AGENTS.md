@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for coding agents working in `/home/obrienta/projects/skewt_server`.
+Guidance for coding agents working in this repository.
 
 ## Project Overview
 

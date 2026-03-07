@@ -57,6 +57,7 @@ Full operator documentation is in [`docs/wireguard-ftp-setup.md`](docs/wireguard
 ## Environment variables
 
 - `SCAN_INTERVAL_MINUTES` (default `5`): cron interval for processing run. Integer `1-59`.
+- `PROCESS_NICE` (default `10`): Unix scheduling niceness for the plotting processor. Integer `-20` to `19`; higher values are lower priority and help the web server stay responsive during plot generation.
 - `SITE_CONFIG_PATH` (default `/data/site-config.yml`): path to site metadata YAML.
 - `TZ` (default `UTC`): container timezone.
 
@@ -109,6 +110,7 @@ Example:
 
 - Cron and web server run in the same container.
 - The startup script runs one initial processing pass immediately before cron begins.
+- Plot generation runs at reduced CPU priority by default (`PROCESS_NICE=10`) so the web server is less likely to stall on small hosts while a new image is rendered.
 
 ## Secure FTP Ingress Over WireGuard
 
@@ -178,3 +180,7 @@ You can run this as a single container service with persistent mounted storage.
 - Set environment variables in platform config rather than editing image.
 - Keep `site-config.yml` in mounted storage or convert to env/secret management.
 - Validate timezone (`TZ`) and clock sync, since timestamps are user-visible.
+
+## Authorship note
+
+This repository includes code and documentation co-authored with AI assistance.

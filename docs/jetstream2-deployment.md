@@ -153,6 +153,20 @@ For this project, that usually means:
 - optionally `8080/tcp` for the web UI
 - do not expose FTP publicly
 
+Example `ufw` commands on the Jetstream2 host:
+
+```bash
+sudo ufw allow 22/tcp
+sudo ufw allow 51820/udp
+sudo ufw allow 8080/tcp
+sudo ufw enable
+sudo ufw status
+```
+
+If you do not want the web UI public, omit the `8080/tcp` rule.
+
+Do not open FTP ports such as `21/tcp` or the passive FTP port range on the public interface. In this design, FTP should only be reachable over WireGuard.
+
 ## Step 5: Associate a public IP address
 
 Your Jetstream2 instance needs a public IP so the receiver-side computer can find the WireGuard server.
