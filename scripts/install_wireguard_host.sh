@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# This script does two jobs:
+# 1. configure a host-side WireGuard server and generate one client config
+# 2. generate repo-local Docker Compose artifacts for the FTP sidecar
+#
+# The generated repo files let the FTP container bind only to the WireGuard IP
+# and reuse the same FTP settings on future runs.
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 CONFIG_DIR="${REPO_ROOT}/config"
@@ -49,6 +56,7 @@ Examples:
 EOF
 }
 
+# Parse a simple flag-based CLI so the script is easy to use over SSH and in docs.
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --endpoint)
@@ -146,6 +154,8 @@ WG_CONF="${WG_DIR}/${WG_IFACE}.conf"
 CLIENT_CONF="${WG_CLIENT_DIR}/${WG_CLIENT_NAME}.conf"
 SERVER_HOST_IP="$(printf '%s\n' "${WG_SERVER_IP}" | cut -d/ -f1)"
 
+# Build a reproducible command line that reflects only the non-default values.
+# This is shown during dry-run output so the user can copy the exact real command.
 build_command_example() {
   local cmd="sudo bash scripts/install_wireguard_host.sh --endpoint ${WG_ENDPOINT}"
   [[ "${WG_IFACE}" != "wg0" ]] && cmd+=" --iface ${WG_IFACE}"
@@ -162,6 +172,8 @@ build_command_example() {
 
 REAL_COMMAND_EXAMPLE="$(build_command_example)"
 
+# Generate the env file that the FTP sidecar will consume at runtime.
+# This file is intentionally repo-local so Docker Compose can use it later.
 render_generated_env() {
   local ftp_password="$1"
   cat <<EOF
@@ -177,6 +189,8 @@ FTP_PASS=${ftp_password}
 EOF
 }
 
+# Generate a Docker Compose override that adds the FTP sidecar with the correct
+# bind IP and passive port range baked in for this host's WireGuard settings.
 render_compose_override() {
   cat <<EOF
 services:
@@ -196,6 +210,8 @@ services:
 EOF
 }
 
+# Dry-run output shows exactly what will be generated on the host and in the repo.
+# This avoids making users guess what the real install will touch.
 render_configs() {
   local server_private_key="$1"
   local server_public_key="$2"
@@ -282,6 +298,8 @@ Example stack startup with generated files:
 EOF
 }
 
+# If `wg` is already installed, generate throwaway preview keys so the dry run
+# looks like a real config. If it is not installed yet, use placeholders instead.
 generate_preview_keys() {
   if command -v wg >/dev/null 2>&1; then
     local server_private_key server_public_key client_private_key client_public_key
@@ -305,10 +323,24 @@ generate_preview_keys() {
   fi
 }
 
+# Generate a reasonably strong alphanumeric FTP password from a finite amount of
+# random data.
+#
+# The previous implementation used:
+#   base64 </dev/urandom | tr -dc 'A-Za-z0-9' | cut -c1-24
+# That can stall because `tr -dc` removes newlines, creating one endless line,
+# and `cut -c1-24` is line-oriented: it can wait forever for end-of-line or EOF.
+#
+# This implementation feeds a finite chunk of random data through the pipeline
+# and then uses `head -c 24`, which is byte-oriented and exits as soon as it has
+# enough characters.
 generate_password() {
-  base64 </dev/urandom | tr -dc 'A-Za-z0-9' | cut -c1-24
+  head -c 48 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 24
 }
 
+# Write the repo-local files that make the FTP sidecar match the host's
+# WireGuard configuration. When run via sudo, hand the generated files back to
+# the invoking user so they are easy to inspect and edit later.
 write_repo_files() {
   local ftp_password="$1"
   install -d -m 755 "${CONFIG_DIR}"
@@ -331,10 +363,14 @@ fi
 apt-get update
 apt-get install -y wireguard qrencode
 
+# Create the WireGuard directory structure with root-only permissions before
+# generating keys or configs.
 install -d -m 700 "${WG_DIR}" "${WG_CLIENT_DIR}"
 
 umask 077
 
+# Reuse existing keys if present so rerunning the script does not silently rotate
+# the server or client identity.
 if [[ ! -f "${SERVER_PRIV}" ]]; then
   wg genkey >"${SERVER_PRIV}"
 fi
@@ -350,6 +386,8 @@ SERVER_PUBLIC_KEY="$(<"${SERVER_PUB}")"
 CLIENT_PRIVATE_KEY="$(<"${CLIENT_PRIV}")"
 CLIENT_PUBLIC_KEY="$(<"${CLIENT_PUB}")"
 
+# Reuse a previously generated FTP password unless the user explicitly passed
+# `--ftp-pass`. That keeps receiver-side configuration stable across reruns.
 if [[ -z "${FTP_PASS}" ]]; then
   if [[ -f "${FTP_ENV_FILE}" ]]; then
     EXISTING_FTP_PASS="$(sed -n 's/^FTP_PASS=//p' "${FTP_ENV_FILE}" | head -n 1)"
@@ -360,6 +398,7 @@ if [[ -z "${FTP_PASS}" ]]; then
   fi
 fi
 
+# Write the host-side WireGuard server config and the matching client config.
 cat >"${WG_CONF}" <<EOF
 [Interface]
 Address = ${WG_SERVER_IP}
@@ -390,6 +429,8 @@ chmod 600 "${WG_CONF}" "${SERVER_PRIV}" "${SERVER_PUB}" "${CLIENT_PRIV}" "${CLIE
 
 write_repo_files "${FTP_PASS}"
 
+# Enable the WireGuard interface immediately so the generated client config can
+# be tested right away.
 systemctl enable --now "wg-quick@${WG_IFACE}"
 
 echo
