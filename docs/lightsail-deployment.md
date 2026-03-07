@@ -105,8 +105,8 @@ In the Lightsail networking or firewall section, open:
 
 If you want the web UI visible from outside the server, also open one of these:
 
-- `8080/tcp` for the current simple setup
-- or `80/tcp` and `443/tcp` later if you place a reverse proxy in front
+- `80/tcp` and `443/tcp` for the recommended Caddy reverse-proxy setup
+- or `8080/tcp` if you deliberately want to expose the app directly without a reverse proxy
 
 If you only need private data ingestion and do not need the website publicly visible, you can leave the web port closed.
 
@@ -210,6 +210,22 @@ This starts:
 
 - the existing Skew-T processor and website
 - the FTP sidecar container used for uploads over the WireGuard VPN
+
+If you want the website on a normal URL with automatic HTTPS, use the included Caddy override:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ftp-wireguard.yml -f docker-compose.caddy.yml up -d
+```
+
+The included `Caddyfile` is configured for:
+
+- `usiub.hoosierwxandclimate.org`
+
+With that setup:
+
+- Caddy listens on `80` and `443`
+- Caddy automatically obtains and renews the TLS certificate
+- requests are proxied to the app on `8080`
 
 ## Step 10: Configure the receiver-side computer
 
@@ -374,9 +390,11 @@ For this project, the simplest good cloud pattern is:
 1. one Ubuntu Lightsail server
 2. one attached static IP
 3. one open UDP port for WireGuard
-4. optionally one open web port for the UI
-5. Docker Compose running this repository
-6. WireGuard on the host
-7. FTP running only on the WireGuard IP
+4. open `80/tcp` and `443/tcp` if using Caddy for the public UI
+5. optionally expose `8080/tcp` only for debugging or direct access
+6. Docker Compose running this repository
+7. WireGuard on the host
+8. FTP running only on the WireGuard IP
+9. Caddy reverse proxy for automatic HTTPS
 
 That gives you the cloud equivalent of a single Linux server, which is the easiest mental model for colleagues to understand.

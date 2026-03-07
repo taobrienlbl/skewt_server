@@ -47,6 +47,34 @@ docker compose -f docker-compose.yml -f docker-compose.ftp-wireguard.yml up -d
 
 Full operator documentation is in [`docs/wireguard-ftp-setup.md`](docs/wireguard-ftp-setup.md).
 
+## Quick start with automatic HTTPS
+
+If you want the site to behave like a normal URL on `http://` and `https://`, use the included Caddy reverse-proxy override.
+
+The current hostname in [`Caddyfile`](Caddyfile) is:
+
+- `usiub.hoosierwxandclimate.org`
+
+Start the stack with:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.caddy.yml up -d
+```
+
+If you also want the WireGuard + FTP sidecar, use:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ftp-wireguard.yml -f docker-compose.caddy.yml up -d
+```
+
+Caddy will:
+
+- listen on `80` and `443`
+- obtain and renew HTTPS certificates automatically
+- reverse-proxy requests to the app on `8080`
+
+For this to work, your DNS for `usiub.hoosierwxandclimate.org` must point to the server's public IP, and the host firewall must allow `80/tcp` and `443/tcp`.
+
 ## Directory mounts
 
 - `./data/work` -> `/data/work` (incoming `*SHARPY.txt`)
@@ -135,14 +163,17 @@ Use this when you have a machine at home/office with Docker Desktop or Docker En
 
 1. Prepare host:
    - Install Docker + Docker Compose.
-   - Open firewall for TCP `8080`.
+   - Open firewall for TCP `80` and `443` if using Caddy.
+   - Open firewall for TCP `8080` only if you plan to expose the app directly without Caddy.
 2. Run service:
-   - `docker compose up -d --build`
+   - Directly on `8080`: `docker compose up -d --build`
+   - With automatic HTTPS via Caddy: `docker compose -f docker-compose.yml -f docker-compose.caddy.yml up -d --build`
 3. Persist data:
    - Keep `data/work`, `data/output`, `data/web`, and `site-config.yml` on local disk (already mounted by `docker-compose.yml`).
 4. Expose publicly:
-   - Configure router/NAT port-forward from public `80/443` (or `8080`) to this host.
-   - Prefer a reverse proxy (`nginx`, `caddy`, or `traefik`) for TLS certificates and cleaner public URL.
+   - Configure router/NAT port-forward from public `80/443` to this host if using Caddy.
+   - Configure router/NAT port-forward from public `8080` only if you are intentionally exposing the app directly.
+   - Prefer the included Caddy reverse proxy for TLS certificates and a cleaner public URL.
 5. DNS:
    - Point a domain/subdomain (for example `skewt.example.com`) to your public IP.
 6. Security hardening:

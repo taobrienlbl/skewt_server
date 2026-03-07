@@ -276,6 +276,33 @@ docker compose -f docker-compose.yml -f docker-compose.ftp-wireguard.yml up -d
 
 This is the key operational command after the host setup is complete.
 
+If you want the site on a normal URL with automatic HTTPS, use the included Caddy reverse-proxy override:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ftp-wireguard.yml -f docker-compose.caddy.yml up -d
+```
+
+The included `Caddyfile` is configured for:
+
+- `usiub.hoosierwxandclimate.org`
+
+For host firewall rules:
+
+Recommended with Caddy:
+
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+```
+
+Direct app access without Caddy:
+
+```bash
+sudo ufw allow 8080/tcp
+```
+
+Do not open both `8080` and `80/443` publicly unless you explicitly want both access paths.
+
 ## Step 6: Configure the radiosonde receiver FTP target
 
 Use the values written into `config/wireguard-ftp.env`.

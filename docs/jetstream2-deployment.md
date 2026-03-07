@@ -151,7 +151,8 @@ You should take a defense-in-depth approach:
 For this project, that usually means:
 
 - `60000/udp` for WireGuard
-- optionally `8080/tcp` for the web UI
+- `80/tcp` and `443/tcp` for the recommended Caddy reverse-proxy setup
+- optionally `8080/tcp` only if you intentionally want direct access without a reverse proxy
 - do not expose FTP publicly
 
 Important practical note:
@@ -171,8 +172,9 @@ If you are using the simplest Exosphere workflow and have not created custom sec
 The safe goal is:
 
 1. allow `60000/udp` for WireGuard
-2. allow `8080/tcp` only if you want the web UI publicly reachable
-3. do not open FTP ports publicly
+2. allow `80/tcp` and `443/tcp` if you want the public web UI through Caddy
+3. allow `8080/tcp` only if you intentionally want the app reachable directly
+4. do not open FTP ports publicly
 
 Relevant Jetstream2 documentation:
 
@@ -291,12 +293,19 @@ Example `ufw` commands on the Jetstream2 host:
 ```bash
 sudo ufw allow 22/tcp
 sudo ufw allow 60000/udp
-sudo ufw allow 8080/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
 sudo ufw enable
 sudo ufw status
 ```
 
-If you do not want the web UI public, omit the `8080/tcp` rule.
+If you do not want the web UI public, omit the `80/tcp` and `443/tcp` rules.
+
+If you intentionally want direct access to the app without Caddy, allow `8080/tcp` instead:
+
+```bash
+sudo ufw allow 8080/tcp
+```
 
 Do not open FTP ports such as `21/tcp` or the passive FTP port range on the public interface. In this design, FTP should only be reachable over WireGuard.
 
@@ -414,6 +423,22 @@ This starts:
 
 - the existing Skew-T processor and website
 - the FTP sidecar container used for uploads over the WireGuard VPN
+
+If you want the site to behave like a normal URL with automatic HTTPS, use the included Caddy reverse-proxy override:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ftp-wireguard.yml -f docker-compose.caddy.yml up -d
+```
+
+The included `Caddyfile` is configured for:
+
+- `usiub.hoosierwxandclimate.org`
+
+With that setup:
+
+- Caddy listens on `80` and `443`
+- Caddy automatically obtains and renews the TLS certificate
+- requests are proxied to the app on `8080`
 
 ## Step 12: Configure the receiver-side computer
 
