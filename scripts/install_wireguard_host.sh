@@ -15,7 +15,7 @@ FTP_ENV_FILE="${CONFIG_DIR}/wireguard-ftp.env"
 FTP_OVERRIDE_FILE="${REPO_ROOT}/docker-compose.ftp-wireguard.yml"
 
 WG_IFACE="wg0"
-WG_PORT="51820"
+WG_PORT="60000"
 WG_SERVER_IP="10.44.0.1/24"
 WG_CLIENT_IP="10.44.0.2/32"
 WG_CLIENT_NAME="receiver-laptop"
@@ -39,7 +39,7 @@ Usage:
 Options:
   --endpoint HOSTNAME_OR_IP   Required. Public DNS name or IP for the host.
   --iface NAME                WireGuard interface name. Default: wg0
-  --port PORT                 WireGuard UDP port. Default: 51820
+  --port PORT                 WireGuard UDP port. Default: 60000
   --server-ip CIDR            Host WireGuard IP/CIDR. Default: 10.44.0.1/24
   --client-ip CIDR            Client WireGuard IP/CIDR. Default: 10.44.0.2/32
   --client-name NAME          Client config name. Default: receiver-laptop
@@ -159,7 +159,7 @@ SERVER_HOST_IP="$(printf '%s\n' "${WG_SERVER_IP}" | cut -d/ -f1)"
 build_command_example() {
   local cmd="sudo bash scripts/install_wireguard_host.sh --endpoint ${WG_ENDPOINT}"
   [[ "${WG_IFACE}" != "wg0" ]] && cmd+=" --iface ${WG_IFACE}"
-  [[ "${WG_PORT}" != "51820" ]] && cmd+=" --port ${WG_PORT}"
+  [[ "${WG_PORT}" != "60000" ]] && cmd+=" --port ${WG_PORT}"
   [[ "${WG_SERVER_IP}" != "10.44.0.1/24" ]] && cmd+=" --server-ip ${WG_SERVER_IP}"
   [[ "${WG_CLIENT_IP}" != "10.44.0.2/32" ]] && cmd+=" --client-ip ${WG_CLIENT_IP}"
   [[ "${WG_CLIENT_NAME}" != "receiver-laptop" ]] && cmd+=" --client-name ${WG_CLIENT_NAME}"
@@ -184,6 +184,9 @@ FTP_BIND_IP=${SERVER_HOST_IP}
 FTP_PASV_ADDRESS=${SERVER_HOST_IP}
 FTP_PASV_MIN_PORT=${FTP_PASV_MIN_PORT}
 FTP_PASV_MAX_PORT=${FTP_PASV_MAX_PORT}
+PASV_ADDRESS=${SERVER_HOST_IP}
+PASV_MIN_PORT=${FTP_PASV_MIN_PORT}
+PASV_MAX_PORT=${FTP_PASV_MAX_PORT}
 FTP_USER=${FTP_USER}
 FTP_PASS=${ftp_password}
 EOF
@@ -202,6 +205,9 @@ services:
       - ./config/wireguard-ftp.env
     environment:
       PASV_ENABLE: "YES"
+      PASV_ADDRESS: "${PASV_ADDRESS}"
+      PASV_MIN_PORT: "${PASV_MIN_PORT}"
+      PASV_MAX_PORT: "${PASV_MAX_PORT}"
     volumes:
       - ./data/work:/home/vsftpd/${FTP_USER}
     ports:

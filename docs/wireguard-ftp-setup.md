@@ -44,7 +44,7 @@ The data path is:
 
 - an Ubuntu host that already runs this repository with Docker Compose
 - a public DNS name or public IP for that host
-- ability to open or forward one UDP port to that host, typically `51820/udp`
+- ability to open or forward one UDP port to that host, typically `60000/udp`
 - ability to install a WireGuard client on the receiver-side computer
 - a radiosonde receiver workflow that can do passive FTP uploads
 
@@ -97,7 +97,7 @@ Checked-in examples of the generated repository files are available here:
 Unless you already have a reason to choose something else, use these defaults:
 
 - WireGuard interface: `wg0`
-- WireGuard UDP port: `51820`
+- WireGuard UDP port: `60000`
 - host VPN IP: `10.44.0.1/24`
 - receiver VPN IP: `10.44.0.2/32`
 - FTP passive port range: `30000-30009`
@@ -134,7 +134,7 @@ If you want non-default values, provide them now. Supported options are:
 
 - `--endpoint HOSTNAME_OR_IP` required
 - `--iface NAME` default `wg0`
-- `--port PORT` default `51820`
+- `--port PORT` default `60000`
 - `--server-ip CIDR` default `10.44.0.1/24`
 - `--client-ip CIDR` default `10.44.0.2/32`
 - `--client-name NAME` default `receiver-laptop`
@@ -184,7 +184,7 @@ If you run the script again later, it will reuse the previously generated FTP pa
 
 ## Step 3: Make sure the network can reach WireGuard
 
-The VPN itself uses one UDP port on the host, typically `51820/udp`.
+The VPN itself uses one UDP port on the host, typically `60000/udp`.
 
 You need to allow that traffic:
 
@@ -195,10 +195,10 @@ You need to allow that traffic:
 For a typical Ubuntu host using `ufw`:
 
 ```bash
-sudo ufw allow 51820/udp
+sudo ufw allow 60000/udp
 ```
 
-If the host is behind a router, forward `51820/udp` from the router to the Ubuntu host.
+If the host is behind a router, forward `60000/udp` from the router to the Ubuntu host.
 
 For this use case, you do not need general IP forwarding or full site-to-site routing. The receiver only needs to reach services running on the host itself.
 
@@ -222,7 +222,7 @@ DNS = 1.1.1.1
 
 [Peer]
 PublicKey = SERVER_PUBLIC_KEY
-Endpoint = your.host.example.org:51820
+Endpoint = your.host.example.org:60000
 AllowedIPs = 10.44.0.1/32
 PersistentKeepalive = 25
 ```
@@ -365,8 +365,8 @@ If you do that, make sure your operational workflow moves or copies files into t
 Check:
 
 - the host's public DNS name or public IP is correct
-- `51820/udp` is open on the host firewall
-- `51820/udp` is forwarded by the router if the host is behind NAT
+- `60000/udp` is open on the host firewall
+- `60000/udp` is forwarded by the router if the host is behind NAT
 - the client config was copied correctly to the receiver-side computer
 - `PersistentKeepalive = 25` is present in the client config
 
@@ -459,7 +459,7 @@ sudo bash scripts/install_wireguard_host.sh \
   --endpoint your.host.example.org
 ```
 
-4. Open or forward `51820/udp` to the host.
+4. Open or forward `60000/udp` to the host.
 5. Copy the generated client config from `/etc/wireguard/clients/` to the receiver-side computer.
 6. Start the stack:
 

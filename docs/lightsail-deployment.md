@@ -101,7 +101,7 @@ AWS documentation:
 
 In the Lightsail networking or firewall section, open:
 
-- `51820/udp` for WireGuard
+- `60000/udp` for WireGuard
 
 If you want the web UI visible from outside the server, also open one of these:
 
@@ -345,7 +345,7 @@ Fix:
 
 Check:
 
-- `51820/udp` is open in Lightsail
+- `60000/udp` is open in Lightsail
 - the server is running
 - the endpoint in the client config matches the static IP or DNS name
 - the receiver-side computer actually started its WireGuard client

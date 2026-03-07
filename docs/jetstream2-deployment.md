@@ -140,6 +140,7 @@ That means you should not assume the server is locked down automatically.
 Jetstream2 security documentation:
 
 - <https://docs.jetstream-cloud.org/faq/security/>
+- Jetstream2 firewall guidance: <https://docs.jetstream-cloud.org/general/firewalls/>
 
 You should take a defense-in-depth approach:
 
@@ -149,15 +150,147 @@ You should take a defense-in-depth approach:
 
 For this project, that usually means:
 
-- `51820/udp` for WireGuard
+- `60000/udp` for WireGuard
 - optionally `8080/tcp` for the web UI
 - do not expose FTP publicly
+
+Important practical note:
+
+- the default Exosphere security group commonly allows broad inbound `TCP`
+- it also commonly allows `UDP` only for the Mosh range `60000-61000`
+- using WireGuard on `60000/udp` fits inside that default UDP range
+
+That is why this repository now uses `60000/udp` as the default WireGuard port.
+
+### What to do in Jetstream2
+
+In Exosphere or the Jetstream2 web interface, review the instance networking or security-group settings and confirm that inbound UDP `60000` is allowed to reach the instance.
+
+If you are using the simplest Exosphere workflow and have not created custom security groups, remember that Exosphere may already be allowing all inbound access by default. That is convenient for connectivity, but not a good long-term security posture for a public-facing server.
+
+The safe goal is:
+
+1. allow `60000/udp` for WireGuard
+2. allow `8080/tcp` only if you want the web UI publicly reachable
+3. do not open FTP ports publicly
+
+Relevant Jetstream2 documentation:
+
+- security FAQ: <https://docs.jetstream-cloud.org/faq/security/>
+- instance creation with Exosphere: <https://docs.jetstream-cloud.org/ui/exo/create_instance/>
+- host firewall guidance: <https://docs.jetstream-cloud.org/general/firewalls/>
+- Horizon security-group management: <https://docs.jetstream-cloud.org/ui/horizon/security_group/>
+- CLI security-group management: <https://docs.jetstream-cloud.org/ui/cli/security_group/>
+
+### How to think about `60000/udp` in Jetstream2
+
+There are three practical cases:
+
+1. you launched the instance with `Exosphere` and did not change the default security group
+2. you launched with `Horizon`
+3. you launched with the `OpenStack CLI`
+
+#### Case 1: Exosphere
+
+Jetstream2 says Exosphere's default security group allows all inbound access.
+
+That means:
+
+- if you used Exosphere defaults, `60000/udp` is likely already allowed because it falls inside the default Mosh UDP range
+- you should still use a host firewall such as `ufw` to restrict exposure
+
+If you changed the security group after launch, or if your project is using a custom security-group setup, use Horizon or the CLI instructions below to confirm that inbound UDP `60000` is allowed.
+
+In practice, the default Exosphere behavior is now part of the design for this repository:
+
+- TCP is broadly open
+- UDP is only open for Mosh (`60000-61000`)
+- `60000/udp` is within that range
+
+So for this project, `60000/udp` is the recommended default on Jetstream2.
+
+#### Case 2: Horizon
+
+Use the Horizon security-group page:
+
+- <https://docs.jetstream-cloud.org/ui/horizon/security_group/>
+
+The short version is:
+
+1. log in to Horizon and select the correct allocation
+2. in the left sidebar, open `Network`
+3. click `Security Groups`
+4. either create a new security group or choose the one attached to your instance
+5. click `Add Rule`
+6. add a custom ingress rule for UDP port `60000` if your current security group does not already allow the default Mosh UDP range
+7. set the remote CIDR
+
+For a simple first test, you can use:
+
+- remote CIDR: `0.0.0.0/0`
+
+That allows WireGuard from anywhere on the internet. Once it is working, you can narrow the allowed source range if you know where the receiver-side computer will connect from.
+
+The rule you want should look like:
+
+- direction: `Ingress`
+- ether type: `IPv4`
+- protocol: `UDP`
+- port range: `60000`
+- remote CIDR: `0.0.0.0/0`
+
+If you also want public ping for troubleshooting, add an ICMP rule as described in the Horizon guide.
+
+#### Case 3: OpenStack CLI
+
+Use the CLI guide:
+
+- <https://docs.jetstream-cloud.org/ui/cli/security_group/>
+
+Example commands:
+
+```bash
+openstack security group create --description "WireGuard access" skewt-wireguard
+openstack security group rule create --protocol udp --dst-port 60000:60000 --remote-ip 0.0.0.0/0 skewt-wireguard
+```
+
+Then attach that security group to your instance using Horizon or the CLI.
+
+If you also want ping for testing:
+
+```bash
+openstack security group rule create --protocol icmp skewt-wireguard
+```
+
+If you need SSH from the internet:
+
+```bash
+openstack security group rule create --protocol tcp --dst-port 22:22 --remote-ip 0.0.0.0/0 skewt-wireguard
+```
+
+In practice, you will usually combine the WireGuard rule with whatever SSH-access group you already use.
+
+### Why this repository now uses `60000/udp`
+
+This repository originally used the more conventional WireGuard port `51820/udp`.
+
+In practice on Jetstream2 with Exosphere, that proved unreliable because the security-group defaults allowed the Mosh UDP range `60000-61000` but not `51820/udp`, and custom rules could disappear unexpectedly.
+
+Using `60000/udp` aligns with the default Exosphere UDP exposure and makes the out-of-the-box Jetstream2 experience more reliable.
+
+Outside Jetstream2, you can still override the port with:
+
+```bash
+--port <your-port>
+```
+
+If you are not on Jetstream2 and prefer the conventional WireGuard port, you can still set `--port 51820` explicitly.
 
 Example `ufw` commands on the Jetstream2 host:
 
 ```bash
 sudo ufw allow 22/tcp
-sudo ufw allow 51820/udp
+sudo ufw allow 60000/udp
 sudo ufw allow 8080/tcp
 sudo ufw enable
 sudo ufw status
@@ -362,7 +495,7 @@ You should treat allocation usage the same way you would treat cost on a commerc
 Check:
 
 - the public IP or DNS name in the client config is correct
-- `51820/udp` is allowed
+- `60000/udp` is allowed
 - the server is actually running WireGuard
 
 Useful commands:
