@@ -7,9 +7,9 @@ services:
       - ./config/wireguard-ftp.env
     environment:
       PASV_ENABLE: "YES"
-      PASV_ADDRESS: "${PASV_ADDRESS}"
-      PASV_MIN_PORT: "${PASV_MIN_PORT}"
-      PASV_MAX_PORT: "${PASV_MAX_PORT}"
+      PASV_ADDRESS: "10.44.0.1"
+      PASV_MIN_PORT: "30000"
+      PASV_MAX_PORT: "30009"
     volumes:
       - ./data/work:/home/vsftpd/radiosonde
     ports:

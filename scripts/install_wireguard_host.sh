@@ -205,9 +205,9 @@ services:
       - ./config/wireguard-ftp.env
     environment:
       PASV_ENABLE: "YES"
-      PASV_ADDRESS: "\${PASV_ADDRESS}"
-      PASV_MIN_PORT: "\${PASV_MIN_PORT}"
-      PASV_MAX_PORT: "\${PASV_MAX_PORT}"
+      PASV_ADDRESS: "${SERVER_HOST_IP}"
+      PASV_MIN_PORT: "${FTP_PASV_MIN_PORT}"
+      PASV_MAX_PORT: "${FTP_PASV_MAX_PORT}"
     volumes:
       - ./data/work:/home/vsftpd/${FTP_USER}
     ports:
