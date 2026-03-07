@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 .venv/
+config/*.env
+docker-compose.ftp-wireguard.yml
 data/work/**
 !data/work/.gitkeep
 data/output/**

@@ -1,0 +1,14 @@
+services:
+  ftp:
+    image: fauria/vsftpd
+    container_name: skewt-ftp
+    restart: unless-stopped
+    env_file:
+      - ./config/wireguard-ftp.env
+    environment:
+      PASV_ENABLE: "YES"
+    volumes:
+      - ./data/work:/home/vsftpd/radiosonde
+    ports:
+      - "10.44.0.1:21:21"
+      - "10.44.0.1:30000-30009:30000-30009"

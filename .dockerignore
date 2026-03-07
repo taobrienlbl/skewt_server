@@ -5,5 +5,7 @@ __pycache__
 *.pyd
 .venv
 .env
+config/*.env
+docker-compose.ftp-wireguard.yml
 data/output/*
 data/web/*

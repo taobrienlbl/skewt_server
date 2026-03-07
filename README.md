@@ -16,6 +16,37 @@ docker compose up --build
 
 Then open `http://localhost:8080`.
 
+## Quick start with WireGuard + FTP ingress
+
+Use this path if your radiosonde receiver can only upload by legacy FTP and you want the upload path secured over WireGuard.
+
+1. Preview the host and FTP configuration:
+
+```bash
+bash scripts/install_wireguard_host.sh \
+  --endpoint your.host.example.org \
+  --dry-run
+```
+
+2. Install WireGuard on the host and generate matching FTP artifacts:
+
+```bash
+sudo bash scripts/install_wireguard_host.sh \
+  --endpoint your.host.example.org
+```
+
+3. Start the Skew-T stack with the generated FTP sidecar override:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ftp-wireguard.yml up -d
+```
+
+4. Load the generated client config from `/etc/wireguard/clients/` onto the receiver-side computer, connect the tunnel, and configure the receiver to upload by passive FTP to the host WireGuard IP, typically `10.44.0.1`.
+
+5. Verify that uploaded files appear in `data/work` and then in the web UI.
+
+Full operator documentation is in [`docs/wireguard-ftp-setup.md`](docs/wireguard-ftp-setup.md).
+
 ## Directory mounts
 
 - `./data/work` -> `/data/work` (incoming `*SHARPY.txt`)
@@ -78,6 +109,21 @@ Example:
 
 - Cron and web server run in the same container.
 - The startup script runs one initial processing pass immediately before cron begins.
+
+## Secure FTP Ingress Over WireGuard
+
+If your radiosonde receiver can only upload via legacy FTP, the recommended approach is:
+
+1. install WireGuard on the host running this stack
+2. connect the receiver computer to that host over WireGuard
+3. run an FTP service bound only to the host's WireGuard address
+4. write uploads into `data/work`
+
+Detailed instructions are in [`docs/wireguard-ftp-setup.md`](docs/wireguard-ftp-setup.md).
+A helper script for bootstrapping the host-side WireGuard interface and generating matching Docker Compose artifacts is in [`scripts/install_wireguard_host.sh`](scripts/install_wireguard_host.sh).
+An example of the generated FTP env file is in [`config/wireguard-ftp.env.example`](config/wireguard-ftp.env.example).
+An example of the generated Compose override is in [`docker-compose.ftp-wireguard.yml.example`](docker-compose.ftp-wireguard.yml.example).
+The WireGuard guide is written for technically proficient Linux users who may not already know VPN or Docker details, and is intended to be shareable with colleagues running radiosonde stations.
 
 ## Public hosting on a desktop/server with Docker
 
