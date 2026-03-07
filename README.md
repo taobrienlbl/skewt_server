@@ -125,6 +125,7 @@ An example of the generated FTP env file is in [`config/wireguard-ftp.env.exampl
 An example of the generated Compose override is in [`docker-compose.ftp-wireguard.yml.example`](docker-compose.ftp-wireguard.yml.example).
 The WireGuard guide is written for technically proficient Linux users who may not already know VPN or Docker details, and is intended to be shareable with colleagues running radiosonde stations.
 For the simplest cloud hosting path, see the Lightsail guide in [`docs/lightsail-deployment.md`](docs/lightsail-deployment.md).
+For Jetstream2 as research infrastructure, see [`docs/jetstream2-deployment.md`](docs/jetstream2-deployment.md).
 
 ## Public hosting on a desktop/server with Docker
 
