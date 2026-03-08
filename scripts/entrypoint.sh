@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-mkdir -p "${WORK_DIR}" "${OUTPUT_DIR}" "${WEB_IMAGES_DIR}" "${WEB_SHARPY_DIR}" "$(dirname "${MANIFEST_PATH}")"
+mkdir -p \
+  "${INGEST_DIR}" \
+  "${DELIVERY_DIR}" \
+  "${WORK_DIR}" \
+  "${OUTPUT_DIR}" \
+  "${WEB_IMAGES_DIR}" \
+  "${WEB_SHARPY_DIR}" \
+  "$(dirname "${MANIFEST_PATH}")" \
+  "$(dirname "${STATE_PATH}")"
 touch /var/log/cron.log
 
 INTERVAL="${SCAN_INTERVAL_MINUTES:-5}"

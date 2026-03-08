@@ -15,7 +15,7 @@
       <header class="hero">
         <p class="eyebrow">Skew-T Monitor</p>
         <h1>{{ site.site_long_name }} ({{ site.site_code }})</h1>
-        <p class="subtitle">Total processed: {{ total }}</p>
+        <p class="subtitle">Total launches tracked: {{ total }}</p>
       </header>
 
       <section class="site-meta card">
@@ -30,12 +30,27 @@
           <p class="label">Latest</p>
           <h2>{{ latest.id }}</h2>
           <p class="launch">Launch: {{ latest.launch_label }}</p>
+          <p class="status {{ latest.transfer_status }}">{{ latest.transfer_status|replace('_', ' ')|title }}</p>
+          {% if latest.transfer_detail %}
+          <p class="detail">{{ latest.transfer_detail }}</p>
+          {% endif %}
           <div class="actions">
+            {% if latest.image %}
             <a href="/{{ latest.image }}" target="_blank" rel="noreferrer">Open Image</a>
+            {% endif %}
+            {% if latest.sharpy %}
             <a href="/{{ latest.sharpy }}">Download SHARPY.txt</a>
+            {% endif %}
           </div>
         </div>
+        {% if latest.image %}
         <img src="/{{ latest.image }}" alt="Latest Skew-T {{ latest.id }}" loading="lazy" />
+        {% else %}
+        <div class="placeholder">
+          <p>Image pending</p>
+          <small>Rendered after transfer verification completes.</small>
+        </div>
+        {% endif %}
       </section>
       {% endif %}
 
@@ -44,10 +59,24 @@
         <article class="card item-card">
           <h3>{{ item.id }}</h3>
           <p class="launch">Launch: {{ item.launch_label }}</p>
+          <p class="status {{ item.transfer_status }}">{{ item.transfer_status|replace('_', ' ')|title }}</p>
+          {% if item.transfer_detail %}
+          <p class="detail">{{ item.transfer_detail }}</p>
+          {% endif %}
+          {% if item.image %}
           <img src="/{{ item.image }}" alt="Skew-T {{ item.id }}" loading="lazy" />
+          {% else %}
+          <div class="placeholder compact">
+            <p>Image pending</p>
+          </div>
+          {% endif %}
           <div class="actions">
+            {% if item.image %}
             <a href="/{{ item.image }}" target="_blank" rel="noreferrer">Open</a>
+            {% endif %}
+            {% if item.sharpy %}
             <a href="/{{ item.sharpy }}">SHARPY</a>
+            {% endif %}
           </div>
         </article>
         {% endfor %}
@@ -55,8 +84,8 @@
 
       {% if not latest %}
       <section class="empty card">
-        <h2>No soundings yet</h2>
-        <p>Drop files matching <code>*SHARPY.txt</code> (or <code>*SHARPPY.txt</code>) into the mounted work directory and wait for the next scheduler run.</p>
+        <h2>No launches yet</h2>
+        <p>Drop the receiver upload set into the mounted ingest directory and wait for the next scheduler run.</p>
       </section>
       {% endif %}
     </main>

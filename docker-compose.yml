@@ -7,9 +7,23 @@ services:
       SCAN_INTERVAL_MINUTES: ${SCAN_INTERVAL_MINUTES:-5}
       SITE_CONFIG_PATH: ${SITE_CONFIG_PATH:-/data/site-config.yml}
       TZ: ${TZ:-UTC}
+      INGEST_DIR: ${INGEST_DIR:-/data/ingest}
+      DELIVERY_DIR: ${DELIVERY_DIR:-/data/deliveries}
+      STATE_PATH: ${STATE_PATH:-/data/state/launches.json}
+      UPLOAD_STABILITY_SECONDS: ${UPLOAD_STABILITY_SECONDS:-120}
+      ENABLE_GLOBUS_TRANSFER: ${ENABLE_GLOBUS_TRANSFER:-false}
+      GLOBUS_CLIENT_ID: ${GLOBUS_CLIENT_ID:-}
+      GLOBUS_CLIENT_SECRET: ${GLOBUS_CLIENT_SECRET:-}
+      GLOBUS_SOURCE_COLLECTION_ID: ${GLOBUS_SOURCE_COLLECTION_ID:-}
+      GLOBUS_DEST_COLLECTION_ID: ${GLOBUS_DEST_COLLECTION_ID:-}
+      GLOBUS_DEST_BASE_PATH: ${GLOBUS_DEST_BASE_PATH:-/UCRP}
+      LAUNCH_DIR_MINUTE_OFFSET: ${LAUNCH_DIR_MINUTE_OFFSET:-0}
     volumes:
+      - ./data/ingest:/data/ingest
+      - ./data/deliveries:/data/deliveries
       - ./data/work:/data/work
       - ./data/output:/data/output
       - ./data/web:/data/web
+      - ./data/state:/data/state
       - ./site-config.yml:/data/site-config.yml:ro
     restart: unless-stopped

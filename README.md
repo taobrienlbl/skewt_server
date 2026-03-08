@@ -1,9 +1,10 @@
 # Skew-T Container
 
 Dockerized service that:
-- scans a mounted work folder for new `*SHARPY.txt` (also accepts common `*SHARPPY.txt`)
-- generates Skew-T diagrams with `sounderpy`
-- avoids regenerating existing images
+- scans a mounted ingest folder for complete radiosonde launch upload sets
+- stages per-launch delivery directories for Globus transfer
+- can submit each launch directory to Globus before rendering
+- generates Skew-T diagrams with `sounderpy` after transfer succeeds
 - uses `site-config.yml` metadata in plot titles and web UI
 - publishes images + downloadable source SHARPY files on a web UI
 - runs processing on a cron interval configurable by environment variable
@@ -77,15 +78,28 @@ For this to work, your DNS for `usiub.hoosierwxandclimate.org` must point to the
 
 ## Directory mounts
 
+- `./data/ingest` -> `/data/ingest` (flat receiver upload drop)
+- `./data/deliveries` -> `/data/deliveries` (per-launch Globus payload directories)
 - `./data/work` -> `/data/work` (incoming `*SHARPY.txt`)
 - `./data/output` -> `/data/output` (generated PNGs)
 - `./data/web` -> `/data/web` (served image/text copies + manifest)
+- `./data/state` -> `/data/state` (launch transfer state)
 - `./site-config.yml` -> `/data/site-config.yml` (site metadata)
 
 ## Environment variables
 
 - `SCAN_INTERVAL_MINUTES` (default `5`): cron interval for processing run. Integer `1-59`.
 - `PROCESS_NICE` (default `10`): Unix scheduling niceness for the plotting processor. Integer `-20` to `19`; higher values are lower priority and help the web server stay responsive during plot generation.
+- `INGEST_DIR` (default `/data/ingest`): flat upload directory populated by the receiver FTP software.
+- `DELIVERY_DIR` (default `/data/deliveries`): per-launch package directory tree used as the Globus source path.
+- `STATE_PATH` (default `/data/state/launches.json`): persistent launch and transfer state file.
+- `UPLOAD_STABILITY_SECONDS` (default `120`): quiet period required before an uploaded launch is treated as complete.
+- `ENABLE_GLOBUS_TRANSFER` (default `false`): when `true`, submit launch directories to Globus before rendering.
+- `GLOBUS_CLIENT_ID`, `GLOBUS_CLIENT_SECRET`: Globus confidential app credentials used for transfer submission.
+- `GLOBUS_SOURCE_COLLECTION_ID`: source collection rooted at `DELIVERY_DIR`.
+- `GLOBUS_DEST_COLLECTION_ID`: destination collection ID.
+- `GLOBUS_DEST_BASE_PATH` (default `/UCRP`): destination base path; launch folders are appended as `<site>/<YYYYMMDD_HHMM>/`.
+- `LAUNCH_DIR_MINUTE_OFFSET` (default `0`): optional minute offset applied to the summary launch time when naming delivery directories.
 - `SITE_CONFIG_PATH` (default `/data/site-config.yml`): path to site metadata YAML.
 - `TZ` (default `UTC`): container timezone.
 
@@ -102,6 +116,25 @@ site_long_name: Indiana University
 ```
 
 These values are shown prominently on the web page and used in Skew-T titles.
+
+## Receiver upload expectations
+
+The ingest pipeline expects a flat upload directory containing one file set per launch:
+
+- `*_SUMMARY.txt`
+- `*_SHARPPY.txt`
+- `*_TEMP.txt`
+- four `*_BUFR*.bufr` files
+
+The launch timestamp is parsed from the summary line:
+
+`Launched (UTC)           : 3/6/2026 23:29:15`
+
+Once all required files exist and have been unchanged for `UPLOAD_STABILITY_SECONDS`, the processor stages a delivery directory at:
+
+`<DELIVERY_DIR>/<SITE>/<YYYYMMDD_HHMM>/`
+
+That directory contains the Globus payload files only: `SHARPPY`, `TEMP`, and the four `BUFR` files.
 
 ## SHARPY file format expectations
 
@@ -124,14 +157,16 @@ Example:
 ## Testing workflow
 
 1. Start stack: `docker compose up --build`
-2. Copy one or more sample `*SHARPY.txt` files into `./data/work`
+2. Copy one complete receiver upload set into `./data/ingest`
 3. Wait one interval or force immediate run:
    - `docker compose exec skewt /opt/venv/bin/python -m app.processor`
 4. Verify:
+   - delivery directories appear under `./data/deliveries/<SITE>/<YYYYMMDD_HHMM>/`
+   - `./data/state/launches.json` reflects transfer state
    - images appear under `./data/output` and `./data/web/images`
    - source files appear under `./data/web/sharpy`
    - browser shows latest sounding first at `http://localhost:8080`
-   - launch date/time labels are shown for each sounding
+   - launch date/time labels and transfer status are shown for each sounding
 5. Re-run processor and confirm existing outputs are skipped.
 
 ## Notes
