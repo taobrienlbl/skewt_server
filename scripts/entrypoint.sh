@@ -37,4 +37,19 @@ cd /app && nice -n "${PROCESS_NICE}" python -m app.processor || true
 
 cron
 
-exec gunicorn --bind 0.0.0.0:8080 --workers 2 --threads 2 "app.web:create_app()"
+GUNICORN_WORKERS="${GUNICORN_WORKERS:-2}"
+GUNICORN_THREADS="${GUNICORN_THREADS:-2}"
+GUNICORN_TIMEOUT="${GUNICORN_TIMEOUT:-120}"
+GUNICORN_MAX_REQUESTS="${GUNICORN_MAX_REQUESTS:-1000}"
+GUNICORN_MAX_REQUESTS_JITTER="${GUNICORN_MAX_REQUESTS_JITTER:-100}"
+
+exec gunicorn \
+  --bind 0.0.0.0:8080 \
+  --workers "${GUNICORN_WORKERS}" \
+  --threads "${GUNICORN_THREADS}" \
+  --timeout "${GUNICORN_TIMEOUT}" \
+  --access-logfile - \
+  --error-logfile - \
+  --max-requests "${GUNICORN_MAX_REQUESTS}" \
+  --max-requests-jitter "${GUNICORN_MAX_REQUESTS_JITTER}" \
+  "app.web:create_app()"
