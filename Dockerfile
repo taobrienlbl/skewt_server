@@ -45,6 +45,8 @@ ENV PATH="/opt/venv/bin:${PATH}" \
     SCAN_INTERVAL_MINUTES=5
 
 EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl --fail --silent --show-error http://127.0.0.1:8080/ >/dev/null || exit 1
 VOLUME ["/data/work", "/data/output", "/data/web"]
 
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]
